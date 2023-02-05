@@ -1,6 +1,6 @@
 from torch.utils.data import Subset
 from PIL import Image
-from torchvision.datasets import SVHN
+from torchvision.datasets import CIFAR100
 from base.torchvision_dataset import TorchvisionDataset
 from .preprocessing import create_semisupervised_setting
 
@@ -10,7 +10,7 @@ import random
 import numpy as np
 
 
-class SVHN_Dataset(TorchvisionDataset):
+class CIFAR100_Dataset(TorchvisionDataset):
 
     def __init__(self, root: str, normal_class: int = 5, known_outlier_class: int = 3, n_known_outlier_classes: int = 0,
                  ratio_known_normal: float = 0.0, ratio_known_outlier: float = 0.0, ratio_pollution: float = 0.0):
@@ -35,11 +35,11 @@ class SVHN_Dataset(TorchvisionDataset):
         target_transform = transforms.Lambda(lambda x: int(x in self.outlier_classes))
 
         # Get train set
-        train_set = MySVHN(root=self.root, split='train', transform=transform, target_transform=target_transform,
+        train_set = MyCIFAR100(root=self.root, train=True, transform=transform, target_transform=target_transform,
                               download=True)
 
         # Create semi-supervised setting
-        idx, _, semi_targets = create_semisupervised_setting(np.array(train_set.labels), self.normal_classes,
+        idx, _, semi_targets = create_semisupervised_setting(np.array(train_set.targets), self.normal_classes,
                                                              self.outlier_classes, self.known_outlier_classes,
                                                              ratio_known_normal, ratio_known_outlier, ratio_pollution)
         train_set.semi_targets[idx] = torch.tensor(semi_targets)  # set respective semi-supervised labels
@@ -48,33 +48,30 @@ class SVHN_Dataset(TorchvisionDataset):
         self.train_set = Subset(train_set, idx)
 
         # Get test set
-        self.test_set = MySVHN(root=self.root, split='test', transform=transform, target_transform=target_transform,
+        self.test_set = MyCIFAR100(root=self.root, train=False, transform=transform, target_transform=target_transform,
                                   download=True)
 
 
-
-class MySVHN(SVHN):
+class MyCIFAR100(CIFAR1000):
     """
-    Torchvision CIFAR10 class with additional targets for the semi-supervised setting and patch of __getitem__ method
+    Torchvision CIFAR100 class with additional targets for the semi-supervised setting and patch of __getitem__ method
     to also return the semi-supervised target as well as the index of a data sample.
     """
 
     def __init__(self, *args, **kwargs):
-        super(MySVHN, self).__init__(*args, **kwargs)
+        super(MyCIFAR100, self).__init__(*args, **kwargs)
 
         self.semi_targets = torch.zeros(len(self.targets), dtype=torch.int64)
 
     def __getitem__(self, index):
-        """Override the original method of the CIFAR10 class.
+        """Override the original method of the CIFAR100 class.
         Args:
             index (int): Index
 
         Returns:
             tuple: (image, target, semi_target, index)
         """
-        
-        # img, target, semi_target = self.data[index], self.targets[index], int(self.semi_targets[index])
-        img, target ,semi_target= self.data[index], int(self.labels[index]),int(self.semi_targets[index])
+        img, target, semi_target = self.data[index], self.targets[index], int(self.semi_targets[index])
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image

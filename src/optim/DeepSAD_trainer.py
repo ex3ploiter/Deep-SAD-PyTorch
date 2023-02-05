@@ -10,6 +10,8 @@ import torch
 import torch.optim as optim
 import numpy as np
 
+from .Attack import *
+
 
 class DeepSADTrainer(BaseTrainer):
 
@@ -114,11 +116,34 @@ class DeepSADTrainer(BaseTrainer):
         with torch.no_grad():
             for data in test_loader:
                 inputs, labels, semi_targets, idx = data
+                
+                shouldBeAttacked=False
+                if self.attack_target=='normal':
+                    if labels==0:
+                        shouldBeAttacked=True
+                elif self.attack_target=='anomal':
+                    if labels==1:
+                        shouldBeAttacked=True
+                elif self.attack_target=='both':
+                    shouldBeAttacked=True
+     
 
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
                 semi_targets = semi_targets.to(self.device)
                 idx = idx.to(self.device)
+
+
+                if shouldBeAttacked==True:
+                    if self.attack_type=='fgsm':
+                        adv_delta=fgsm(net,inputs,self.c,8/255)
+                    
+                    if self.attack_type=='pgd':
+                        adv_delta=pgd(net, inputs, self.c, 8./255., 0.1, 10)
+                    
+                    inputs = inputs+adv_delta if labels==0 else inputs-adv_delta
+    
+
 
                 outputs = net(inputs)
                 dist = torch.sum((outputs - self.c) ** 2, dim=1)
