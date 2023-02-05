@@ -1,7 +1,7 @@
 from .mnist import MNIST_Dataset
 from .fmnist import FashionMNIST_Dataset
 from .cifar10 import CIFAR10_Dataset
-from .cifar100 import CIFAR10_Dataset
+from .cifar100 import CIFAR100_Dataset
 from .svhn import SVHN_Dataset
 
 

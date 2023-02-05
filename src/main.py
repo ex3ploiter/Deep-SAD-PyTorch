@@ -217,7 +217,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, et
             print(f'\n\nAttack Type: {att_type} and Attack Target: {att_target}\n\n')
     
     # Test model
-            deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader)
+            deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type=att_type,attack_target=att_target)
             
             
             mine_result['Attack_Type'].append(att_type)

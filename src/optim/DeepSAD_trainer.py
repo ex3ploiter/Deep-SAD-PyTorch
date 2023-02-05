@@ -104,7 +104,8 @@ class DeepSADTrainer(BaseTrainer):
         logger = logging.getLogger()
 
         # Get test data loader
-        _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
+        batch_sz=self.batch_size if self.attack_type=='clear' else 1
+        _, test_loader = dataset.loaders(batch_size=batch_sz, num_workers=self.n_jobs_dataloader)
 
         # Set device for network
         net = net.to(self.device)
@@ -116,51 +117,51 @@ class DeepSADTrainer(BaseTrainer):
         start_time = time.time()
         idx_label_score = []
         net.eval()
-        with torch.no_grad():
-            for data in test_loader:
-                inputs, labels, semi_targets, idx = data
-                
-                shouldBeAttacked=False
-                if self.attack_target=='normal':
-                    if labels==0:
-                        shouldBeAttacked=True
-                elif self.attack_target=='anomal':
-                    if labels==1:
-                        shouldBeAttacked=True
-                elif self.attack_target=='both':
+        # with torch.no_grad():
+        for data in test_loader:
+            inputs, labels, semi_targets, idx = data
+            
+            shouldBeAttacked=False
+            if self.attack_target=='normal':
+                if labels==0:
                     shouldBeAttacked=True
-     
-
-                inputs = inputs.to(self.device)
-                labels = labels.to(self.device)
-                semi_targets = semi_targets.to(self.device)
-                idx = idx.to(self.device)
-
-
-                if shouldBeAttacked==True:
-                    if self.attack_type=='fgsm':
-                        adv_delta=fgsm(net,inputs,self.c,8/255)
-                    
-                    if self.attack_type=='pgd':
-                        adv_delta=pgd(net, inputs, self.c, 8./255., 0.1, 10)
-                    
-                    inputs = inputs+adv_delta if labels==0 else inputs-adv_delta
+            elif self.attack_target=='anomal':
+                if labels==1:
+                    shouldBeAttacked=True
+            elif self.attack_target=='both':
+                shouldBeAttacked=True
     
 
+            inputs = inputs.to(self.device)
+            labels = labels.to(self.device)
+            semi_targets = semi_targets.to(self.device)
+            idx = idx.to(self.device)
 
-                outputs = net(inputs)
-                dist = torch.sum((outputs - self.c) ** 2, dim=1)
-                losses = torch.where(semi_targets == 0, dist, self.eta * ((dist + self.eps) ** semi_targets.float()))
-                loss = torch.mean(losses)
-                scores = dist
 
-                # Save triples of (idx, label, score) in a list
-                idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
-                                            labels.cpu().data.numpy().tolist(),
-                                            scores.cpu().data.numpy().tolist()))
+            if shouldBeAttacked==True:
+                if self.attack_type=='fgsm':
+                    adv_delta=fgsm(net,inputs,self.c,8/255)
+                
+                if self.attack_type=='pgd':
+                    adv_delta=pgd(net, inputs, self.c, 8./255., 0.1, 10)
+                
+                inputs = inputs+adv_delta if labels==0 else inputs-adv_delta
 
-                epoch_loss += loss.item()
-                n_batches += 1
+
+
+            outputs = net(inputs)
+            dist = torch.sum((outputs - self.c) ** 2, dim=1)
+            losses = torch.where(semi_targets == 0, dist, self.eta * ((dist + self.eps) ** semi_targets.float()))
+            loss = torch.mean(losses)
+            scores = dist
+
+            # Save triples of (idx, label, score) in a list
+            idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
+                                        labels.cpu().data.numpy().tolist(),
+                                        scores.cpu().data.numpy().tolist()))
+
+            epoch_loss += loss.item()
+            n_batches += 1
 
         self.test_time = time.time() - start_time
         self.test_scores = idx_label_score
