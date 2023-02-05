@@ -143,7 +143,7 @@ class DeepSADTrainer(BaseTrainer):
                     adv_delta=fgsm(net,inputs,self.c,8/255)
                 
                 if self.attack_type=='pgd':
-                    adv_delta=pgd(net, inputs, self.c, 8./255., 0.1, 10)
+                    adv_delta=pgd(net, inputs, self.c, 8/255, 0.05, 10)
                 
                 inputs  = inputs+adv_delta if labels==0 else inputs-adv_delta
 
