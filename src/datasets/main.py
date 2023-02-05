@@ -19,7 +19,7 @@ def load_dataset(dataset_name, data_path, normal_class, known_outlier_class, n_k
 
     dataset = None
 
-    if dataset_name == 'mnist':
+    if dataset_name  == 'mnist':
         dataset = MNIST_Dataset(root=data_path,
                                 normal_class=normal_class,
                                 known_outlier_class=known_outlier_class,
