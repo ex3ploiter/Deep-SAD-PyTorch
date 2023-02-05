@@ -60,23 +60,27 @@ class DeepSAD(object):
 
     def train(self, dataset: BaseADDataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 50,
               lr_milestones: tuple = (), batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda',
-              n_jobs_dataloader: int = 0):
+            n_jobs_dataloader: int = 0,attack_type='fgsm',attack_target='clear'):
+
         """Trains the Deep SAD model on the training data."""
 
         self.optimizer_name = optimizer_name
         self.trainer = DeepSADTrainer(self.c, self.eta, optimizer_name=optimizer_name, lr=lr, n_epochs=n_epochs,
                                       lr_milestones=lr_milestones, batch_size=batch_size, weight_decay=weight_decay,
-                                      device=device, n_jobs_dataloader=n_jobs_dataloader)
+                                      device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type=attack_type,attack_target=attack_target)
         # Get the model
         self.net = self.trainer.train(dataset, self.net)
         self.results['train_time'] = self.trainer.train_time
         self.c = self.trainer.c.cpu().data.numpy().tolist()  # get as list
 
-    def test(self, dataset: BaseADDataset, device: str = 'cuda', n_jobs_dataloader: int = 0):
+    def test(self, dataset: BaseADDataset, device: str = 'cuda', n_jobs_dataloader: int = 0,attack_type='fgsm',attack_target='clear'):
         """Tests the Deep SAD model on the test data."""
 
         if self.trainer is None:
-            self.trainer = DeepSADTrainer(self.c, self.eta, device=device, n_jobs_dataloader=n_jobs_dataloader)
+            self.trainer = DeepSADTrainer(self.c, self.eta, device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type=attack_type,attack_target=attack_target)
+
+        self.trainer.attack_target=attack_target
+        self.trainer.attack_type=attack_type
 
         self.trainer.test(dataset, self.net)
 

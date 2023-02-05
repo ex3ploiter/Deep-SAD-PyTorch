@@ -19,7 +19,7 @@ class CIFAR100_Dataset(TorchvisionDataset):
         # Define normal and outlier classes
         self.n_classes = 2  # 0: normal, 1: outlier
         self.normal_classes = tuple([normal_class])
-        self.outlier_classes = list(range(0, 10))
+        self.outlier_classes = list(range(0, 100))
         self.outlier_classes.remove(normal_class)
         self.outlier_classes = tuple(self.outlier_classes)
 
@@ -52,7 +52,7 @@ class CIFAR100_Dataset(TorchvisionDataset):
                                   download=True)
 
 
-class MyCIFAR100(CIFAR1000):
+class MyCIFAR100(CIFAR100):
     """
     Torchvision CIFAR100 class with additional targets for the semi-supervised setting and patch of __getitem__ method
     to also return the semi-supervised target as well as the index of a data sample.

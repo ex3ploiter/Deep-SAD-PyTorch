@@ -9,6 +9,9 @@ from utils.visualization.plot_images_grid import plot_images_grid
 from DeepSAD import DeepSAD
 from datasets.main import load_dataset
 
+import os 
+import pandas as pd
+
 
 ################################################################################
 # Settings
@@ -201,8 +204,28 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, et
                   device=device,
                   n_jobs_dataloader=n_jobs_dataloader)
 
+    mine_result={}
+    mine_result['Attack_Type']=[]
+    mine_result['Attack_Target']=[]
+    # mine_result['AUC']=[]
+    mine_result['ADV_AUC']=[]
+  
+
+    for att_type in ['fgsm', 'pgd']:
+        for att_target in ['clear', 'normal','anomal','both']:
+            
+            print(f'\n\nAttack Type: {att_type} and Attack Target: {att_target}\n\n')
+    
     # Test model
-    deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader)
+            deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader)
+            
+            
+            mine_result['Attack_Type'].append(att_type)
+            mine_result['Attack_Target'].append(att_target)
+            mine_result['ADV_AUC'].append(deepSAD.results['test_auc'])
+
+            df = pd.DataFrame(mine_result)
+            df.to_csv(os.path.join('./',f'Results_{dataset_name}_Class_{normal_class}.csv'), index=False)            
 
     # Save results, model, and configuration
     deepSAD.save_results(export_json=xp_path + '/results.json')
