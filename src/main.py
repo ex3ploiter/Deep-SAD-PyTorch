@@ -225,7 +225,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, et
             mine_result['ADV_AUC'].append(deepSAD.results['test_auc'])
 
             df = pd.DataFrame(mine_result)
-            df.to_csv(os.path.join('./',f'Results_{dataset_name}_Class_{normal_class}.csv'), index=False)            
+            df.to_csv(os.path.join('./',f'Results_DeepSAD_{dataset_name}_Class_{normal_class}.csv'), index=False)            
 
     # Save results, model, and configuration
     deepSAD.save_results(export_json=xp_path + '/results.json')
