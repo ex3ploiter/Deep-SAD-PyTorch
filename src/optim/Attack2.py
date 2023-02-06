@@ -68,8 +68,8 @@ def pgd_inf(model, X, epsilon, alpha, attack_iters, restarts,c):
         max_loss = torch.max(max_loss, all_loss)
     return max_delta
 
-def attack_pgd(forward, X, y, epsilon=8/255, alpha=2/255, attack_iters=10, restarts=1, norm="l_inf",c=None):
-    max_loss = torch.zeros(y.shape[0]).to(device)
+def attack_pgd(model, X, epsilon=8/255, alpha=2/255, attack_iters=10, restarts=1, norm="l_inf",c=None):
+    max_loss = torch.zeros(X.shape[0]).to(device)
     max_delta = torch.zeros_like(X).to(device)
     for _ in range(restarts):
         delta = torch.zeros_like(X).to(device)
@@ -83,7 +83,7 @@ def attack_pgd(forward, X, y, epsilon=8/255, alpha=2/255, attack_iters=10, resta
             index = slice(None,None,None)
             if not isinstance(index, slice) and len(index) == 0:
                 break
-            loss = getScore(forward,X,delta,c)
+            loss = getScore(model,X,delta,c)
             loss.backward()
             
             grad = delta.grad.detach()
@@ -97,7 +97,7 @@ def attack_pgd(forward, X, y, epsilon=8/255, alpha=2/255, attack_iters=10, resta
             delta.grad.zero_()
 
         
-        all_loss = getScore(forward,X,delta,c)
+        all_loss = getScore(model,X,delta,c)
         
         max_delta[all_loss >= max_loss] = delta.detach()[all_loss >= max_loss]
         max_loss = torch.max(max_loss, all_loss)

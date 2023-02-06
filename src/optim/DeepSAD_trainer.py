@@ -105,8 +105,10 @@ class DeepSADTrainer(BaseTrainer):
         
         try:
           std = torch.tensor(dataset.ds_std).view(3,1,1).cuda()
+          std=torch.mean(std).item()
         except:
           std = torch.tensor(dataset.ds_std).view(1,1,1).cuda()
+          std=std.item()
 
         epsilon = (8 / 255.) / std
         
@@ -158,8 +160,8 @@ class DeepSADTrainer(BaseTrainer):
                 
                 
                 if self.attack_type=='pgd':
-                    adv_delta=attack_pgd(model=net,X= inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=2,c= self.c)
-                    # adv_delta=pgd_inf(model=net,X= inputs, epsilon=0.3,alpha=0.01,attack_iters= 10,restarts=2,c= self.c)
+                    # adv_delta=attack_pgd(model=net,X= inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=2,c= self.c)
+                    adv_delta=attack_pgd(model=net,X= inputs, epsilon=0.3,alpha=alpha,attack_iters= 10,restarts=1,c= self.c)
                 
                 inputs  = inputs+adv_delta if labels==0 else inputs-adv_delta
 
