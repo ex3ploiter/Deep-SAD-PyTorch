@@ -52,6 +52,10 @@ class CIFAR100_Dataset(TorchvisionDataset):
                                   download=True)
 
 
+        self.ds_mean=(0.5071, 0.4867, 0.4408)
+        self.ds_std= (0.2675, 0.2565, 0.2761)
+
+
 class MyCIFAR100(CIFAR100):
     """
     Torchvision CIFAR100 class with additional targets for the semi-supervised setting and patch of __getitem__ method

@@ -102,6 +102,10 @@ class DeepSADTrainer(BaseTrainer):
 
     def test(self, dataset: BaseADDataset, net: BaseNet):
         logger = logging.getLogger()
+        
+        std = torch.tensor(dataset.ds_std).view(3,1,1).cuda()
+        epsilon = (8 / 255.) / std
+        alpha = (2 / 255.) / std
 
         # Get test data loader
         batch_sz=self.batch_size if self.attack_type=='clear' else 1
@@ -140,11 +144,11 @@ class DeepSADTrainer(BaseTrainer):
 
             if shouldBeAttacked==True:
                 if self.attack_type=='fgsm':
-                    adv_delta=fgsm(net,inputs,self.c,8/255)
+                    adv_delta=fgsm(net,inputs,self.c,epsilon)
                 
                 
                 if self.attack_type=='pgd':
-                    adv_delta=pgd_inf(net, inputs, self.c, .3, (8/255)*2.5, 10)
+                    adv_delta=pgd_inf(net, inputs, self.c, epsilon, alpha, 10)
                 
                 inputs  = inputs+adv_delta if labels==0 else inputs-adv_delta
 

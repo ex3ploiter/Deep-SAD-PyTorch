@@ -51,6 +51,10 @@ class MNIST_Dataset(TorchvisionDataset):
                                 download=True)
 
 
+        self.ds_mean=(0.1307)
+        self.ds_std= (0.3081)
+
+
 class MyMNIST(MNIST):
     """
     Torchvision MNIST class with additional targets for the semi-supervised setting and patch of __getitem__ method

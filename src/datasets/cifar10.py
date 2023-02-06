@@ -50,6 +50,9 @@ class CIFAR10_Dataset(TorchvisionDataset):
         # Get test set
         self.test_set = MyCIFAR10(root=self.root, train=False, transform=transform, target_transform=target_transform,
                                   download=True)
+        
+        self.ds_mean=(0.4914, 0.4822, 0.4465)
+        self.ds_std=(0.2471, 0.2435, 0.2616)
 
 
 class MyCIFAR10(CIFAR10):

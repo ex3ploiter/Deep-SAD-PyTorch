@@ -51,6 +51,10 @@ class FashionMNIST_Dataset(TorchvisionDataset):
                                        target_transform=target_transform, download=True)
 
 
+        self.ds_mean=(0.2860)
+        self.ds_std= (0.3530)
+
+
 class MyFashionMNIST(FashionMNIST):
     """
     Torchvision FashionMNIST class with additional targets for the semi-supervised setting and patch of __getitem__
