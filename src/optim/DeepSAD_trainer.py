@@ -10,7 +10,7 @@ import torch
 import torch.optim as optim
 import numpy as np
 
-from .Attack import *
+from .Attack2 import *
 
 
 class DeepSADTrainer(BaseTrainer):
