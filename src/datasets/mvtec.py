@@ -47,8 +47,7 @@ class MVTec_Dataset(TorchvisionDataset):
         target_transform = transforms.Lambda(lambda x: int(x in self.outlier_classes))
 
         # Get train set
-        train_set = MyMVTec(root=self.root, train=True, transform=transform, target_transform=target_transform,
-                              download=True)
+        train_set = MyMVTec(root=self.root, train=True, transform=transform, target_transform=target_transform)
 
         # Create semi-supervised setting
         idx, _, semi_targets = create_semisupervised_setting(np.array(train_set.labels), self.normal_classes,
@@ -60,8 +59,7 @@ class MVTec_Dataset(TorchvisionDataset):
         self.train_set = Subset(train_set, idx)
 
         # Get test set
-        self.test_set = MyMVTec(root=self.root, train=False, transform=transform, target_transform=target_transform,
-                                  download=True)
+        self.test_set = MyMVTec(root=self.root, train=False, transform=transform, target_transform=target_transform)
 
 
 
