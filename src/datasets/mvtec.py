@@ -92,7 +92,7 @@ class MyMVTec(Dataset):
             self.labels.append(img_class_idx)
         
 
-        self.semi_targets = torch.zeros(len(self.targets), dtype=torch.int64)
+        self.semi_targets = torch.zeros(len(self.labels), dtype=torch.int64)
     def __getitem__(self, index):
         image_file = self.image_files[index]
         image = Image.open(image_file)
