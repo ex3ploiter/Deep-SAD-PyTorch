@@ -41,7 +41,10 @@ def build_network(net_name, ae_net=None):
 
     if net_name == 'cifar10_LeNet':
         net = CIFAR10_LeNet()
-
+    
+    if net_name == 'mvtec_LeNet':
+        net = MVTec_LeNet()
+    
     if net_name == 'cifar10_DGM_M2':
         net = DeepGenerativeModel([3*32*32, 2, 128, [512, 256]], classifier_net=CIFAR10_LeNet)
 
