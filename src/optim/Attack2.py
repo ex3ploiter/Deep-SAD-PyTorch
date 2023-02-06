@@ -28,8 +28,8 @@ def fgsm(model, inputs, c, epsilon):
 def clamp(X, lower_limit, upper_limit):
     return torch.max(torch.min(X, upper_limit), lower_limit)
 
-def pgd_inf(model, X, y, epsilon, alpha, attack_iters, restarts,c):
-    max_loss = torch.zeros(y.shape[0]).cuda()
+def pgd_inf(model, X, epsilon, alpha, attack_iters, restarts,c):
+    max_loss = torch.zeros(X.shape[0]).cuda()
     max_delta = torch.zeros_like(X).cuda()
     for zz in range(restarts):
         delta = torch.zeros_like(X).cuda()
