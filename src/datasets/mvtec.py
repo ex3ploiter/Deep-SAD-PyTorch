@@ -43,7 +43,14 @@ class MVTec_Dataset(TorchvisionDataset):
             self.known_outlier_classes = tuple(random.sample(self.outlier_classes, n_known_outlier_classes))
 
         # CIFAR-10 preprocessing: feature scaling to [0, 1]
-        transform = transforms.ToTensor()
+        # transform = transforms.ToTensor()
+        transform = transforms.Compose([
+                transforms.Resize(256),
+                transforms.ToTensor()])
+                                        
+        
+        
+        
         target_transform = transforms.Lambda(lambda x: int(x in self.outlier_classes))
 
         # Get train set
