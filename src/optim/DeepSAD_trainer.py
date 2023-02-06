@@ -158,7 +158,7 @@ class DeepSADTrainer(BaseTrainer):
                 
                 
                 if self.attack_type=='pgd':
-                    adv_delta=pgd_inf(model=net,X= inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=2,c= self.c)
+                    adv_delta=attack_pgd(model=net,X= inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=2,c= self.c)
                     # adv_delta=pgd_inf(model=net,X= inputs, epsilon=0.3,alpha=0.01,attack_iters= 10,restarts=2,c= self.c)
                 
                 inputs  = inputs+adv_delta if labels==0 else inputs-adv_delta
