@@ -1,6 +1,7 @@
 from .mnist_LeNet import MNIST_LeNet, MNIST_LeNet_Autoencoder
 from .fmnist_LeNet import FashionMNIST_LeNet, FashionMNIST_LeNet_Autoencoder
 from .cifar10_LeNet import CIFAR10_LeNet, CIFAR10_LeNet_Autoencoder
+from .mvtec_LeNet import *
 from .mlp import MLP, MLP_Autoencoder
 from .vae import VariationalAutoencoder
 from .dgm import DeepGenerativeModel, StackedDeepGenerativeModel
@@ -15,7 +16,7 @@ def build_network(net_name, ae_net=None):
                             'arrhythmia_mlp', 'cardio_mlp', 'satellite_mlp', 'satimage-2_mlp', 'shuttle_mlp',
                             'thyroid_mlp',
                             'arrhythmia_DGM_M2', 'cardio_DGM_M2', 'satellite_DGM_M2', 'satimage-2_DGM_M2',
-                            'shuttle_DGM_M2', 'thyroid_DGM_M2')
+                            'shuttle_DGM_M2', 'thyroid_DGM_M2','mvtec_LeNet')
     assert net_name in implemented_networks
 
     net = None
@@ -113,6 +114,10 @@ def build_autoencoder(net_name):
 
     if net_name == 'cifar10_LeNet':
         ae_net = CIFAR10_LeNet_Autoencoder()
+
+    if net_name == 'mvtec_LeNet':
+        ae_net = MVTec_LeNet_Autoencoder()
+
 
     if net_name == 'cifar10_DGM_M1M2':
         ae_net = VariationalAutoencoder([3*32*32, 128, [512, 256]])
