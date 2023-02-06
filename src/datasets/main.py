@@ -14,7 +14,7 @@ def load_dataset(dataset_name, data_path, normal_class, known_outlier_class, n_k
                  random_state=None):
     """Loads the dataset."""
 
-    implemented_datasets = ('mnist', 'fmnist', 'cifar10',
+    implemented_datasets = ('mnist', 'fmnist', 'cifar10','mvtec','svhn',
                             'arrhythmia', 'cardio', 'satellite', 'satimage-2', 'shuttle', 'thyroid')
     assert dataset_name in implemented_datasets
 
