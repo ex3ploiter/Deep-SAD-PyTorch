@@ -103,7 +103,11 @@ class DeepSADTrainer(BaseTrainer):
     def test(self, dataset: BaseADDataset, net: BaseNet):
         logger = logging.getLogger()
         
-        std = torch.tensor(dataset.ds_std).view(3,1,1).cuda()
+        try:
+          std = torch.tensor(dataset.ds_std).view(3,1,1).cuda()
+        except:
+          std = torch.tensor(dataset.ds_std).view(1,1,1).cuda()
+
         epsilon = (8 / 255.) / std
         alpha = (2 / 255.) / std
 
