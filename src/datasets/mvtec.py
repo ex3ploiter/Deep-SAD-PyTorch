@@ -115,7 +115,7 @@ class MyMVTec(Dataset):
             
         
         
-        return image, target, index
+        return image, target,semi_target, index
         
 
     def __len__(self):
