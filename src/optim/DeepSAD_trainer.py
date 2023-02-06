@@ -112,8 +112,8 @@ class DeepSADTrainer(BaseTrainer):
 
         epsilon = (8 / 255.) / std
         
-        print("\n\nthis is std:   ",std,"\n\n")
-        print("\n\nthis is eps:   ",epsilon,"\n\n")
+        # print("\n\nthis is std:   ",std,"\n\n")
+        # print("\n\nthis is eps:   ",epsilon,"\n\n")
         
         # alpha = (2 / 255.) / std
         alpha=0.01
