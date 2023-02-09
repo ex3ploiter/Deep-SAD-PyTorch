@@ -143,7 +143,7 @@ class DeepSADTrainer(BaseTrainer):
             
             # inputs = inputs+adv_delta if labels==0 else inputs-adv_delta
 
-            _,adv_scores=self.getScore(net,adv_images)
+            _,adv_scores=self.getScore(net,adv_images,semi_targets)
 
             # Save triples of (idx, label, score) in a list
             idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
