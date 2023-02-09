@@ -9,17 +9,16 @@ from utils.visualization.plot_images_grid import plot_images_grid
 from DeepSAD import DeepSAD
 from datasets.main import load_dataset
 
+import pandas as pd 
 import os 
-import pandas as pd
-
 
 ################################################################################
 # Settings
 ################################################################################
 @click.command()
-@click.argument('dataset_name', type=click.Choice(['mnist', 'fmnist', 'cifar10','svhn','mvtec','cifar100', 'arrhythmia', 'cardio', 'satellite',
+@click.argument('dataset_name', type=click.Choice(['mnist', 'fmnist', 'cifar10', 'arrhythmia', 'cardio', 'satellite',
                                                    'satimage-2', 'shuttle', 'thyroid']))
-@click.argument('net_name', type=click.Choice(['mnist_LeNet', 'fmnist_LeNet', 'cifar10_LeNet','mvtec_LeNet' ,'arrhythmia_mlp',
+@click.argument('net_name', type=click.Choice(['mnist_LeNet', 'fmnist_LeNet', 'cifar10_LeNet', 'arrhythmia_mlp',
                                                'cardio_mlp', 'satellite_mlp', 'satimage-2_mlp', 'shuttle_mlp',
                                                'thyroid_mlp']))
 @click.argument('xp_path', type=click.Path(exists=True))
@@ -72,11 +71,15 @@ import pandas as pd
                    'If 0, no anomalies are known.'
                    'If 1, outlier class as specified in --known_outlier_class option.'
                    'If > 1, the specified number of outlier classes will be sampled at random.')
+
+@click.option('--eps', type=float, default=8/255)            
+@click.option('--alpha', type=float, default=1e-2)  
+
 def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, eta,
          ratio_known_normal, ratio_known_outlier, ratio_pollution, device, seed,
          optimizer_name, lr, n_epochs, lr_milestone, batch_size, weight_decay,
          pretrain, ae_optimizer_name, ae_lr, ae_n_epochs, ae_lr_milestone, ae_batch_size, ae_weight_decay,
-         num_threads, n_jobs_dataloader, normal_class, known_outlier_class, n_known_outlier_classes):
+         num_threads, n_jobs_dataloader, normal_class, known_outlier_class, n_known_outlier_classes,eps,alpha):
     """
     Deep SAD, a method for deep semi-supervised anomaly detection.
 
@@ -204,58 +207,59 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, et
                   device=device,
                   n_jobs_dataloader=n_jobs_dataloader)
 
-    mine_result={}
-    mine_result['Attack_Type']=[]
-    mine_result['Attack_Target']=[]
-    # mine_result['AUC']=[]
-    mine_result['ADV_AUC']=[]
-  
-
-    for att_type in ['fgsm', 'pgd']:
-        for att_target in ['clear', 'normal','anomal','both']:
-            
-            print(f'\n\nAttack Type: {att_type} and Attack Target: {att_target}\n\n')
+    
+    mine_result = {}
+    mine_result['Attack_Type'] = []
+    mine_result['Attack_Target'] = []
+    mine_result['ADV_AUC'] = []    
     
     # Test model
-            deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type=att_type,attack_target=att_target)
-            
-            
-            mine_result['Attack_Type'].append(att_type)
-            mine_result['Attack_Target'].append(att_target)
-            mine_result['ADV_AUC'].append(deepSAD.results['test_auc'])
+    deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader)
+    
+    
+    clear_auc=deepSAD.results['clear_auc']
+    normal_auc=deepSAD.results['normal_auc']
+    anomal_auc=deepSAD.results['anomal_auc']
+    both_auc=deepSAD.results['both_auc']
+    
+    print(f'FGSM Adv Adverserial Clean: {clear_auc}')
+    print(f'FGSM Adv Adverserial Normal: {normal_auc}')
+    print(f'FGSM Adv Adverserial Anomal: {anomal_auc}')
+    print(f'FGSM Adv Adverserial Both: {both_auc}\n\n')
+    
+    mine_result['Attack_Type'].extend(['fgsm','fgsm','fgsm','fgsm'])
+    mine_result['Attack_Target'].extend(['clean','normal','anomal','both'])
+    mine_result['ADV_AUC'].extend([clear_auc,normal_auc,anomal_auc,both_auc])        
 
-            df = pd.DataFrame(mine_result)
-            df.to_csv(os.path.join('./',f'Results_DeepSAD_{dataset_name}_Class_{normal_class}.csv'), index=False)            
+
+
+
+    # deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type='fgsm',epsilon=cfg.settings['eps'],alpha=cfg.settings['alpha'])
+    # clear_auc=deepSAD.results['clear_auc']
+    # normal_auc=deepSAD.results['normal_auc']
+    # anomal_auc=deepSAD.results['anomal_auc']
+    # both_auc=deepSAD.results['both_auc']
+
+    # mine_result['Attack_Type'].extend(['fgsm','fgsm','fgsm','fgsm'])
+    # mine_result['Attack_Target'].extend(['clean','normal','anomal','both'])
+    # mine_result['ADV_AUC'].extend([clear_auc,normal_auc,anomal_auc,both_auc])        
+    
+    # print(f'FGSM Adv Adverserial Clean: {clear_auc}')
+    # print(f'FGSM Adv Adverserial Normal: {normal_auc}')
+    # print(f'FGSM Adv Adverserial Anomal: {anomal_auc}')
+    # print(f'FGSM Adv Adverserial Both: {both_auc}\n\n')
+
+    df = pd.DataFrame(mine_result)    
+    df.to_csv(os.path.join('./',f'Results_SAD_{dataset_name}_Class_{normal_class}.csv'), index=False)
+
+    
 
     # Save results, model, and configuration
     deepSAD.save_results(export_json=xp_path + '/results.json')
     deepSAD.save_model(export_model=xp_path + '/model.tar')
     cfg.save_config(export_json=xp_path + '/config.json')
 
-    # Plot most anomalous and most normal test samples
-    indices, labels, scores = zip(*deepSAD.results['test_scores'])
-    indices, labels, scores = np.array(indices), np.array(labels), np.array(scores)
-    idx_all_sorted = indices[np.argsort(scores)]  # from lowest to highest score
-    idx_normal_sorted = indices[labels == 0][np.argsort(scores[labels == 0])]  # from lowest to highest score
 
-    if dataset_name in ('mnist', 'fmnist', 'cifar10'):
-
-        if dataset_name in ('mnist', 'fmnist'):
-            X_all_low = dataset.test_set.data[idx_all_sorted[:32], ...].unsqueeze(1)
-            X_all_high = dataset.test_set.data[idx_all_sorted[-32:], ...].unsqueeze(1)
-            X_normal_low = dataset.test_set.data[idx_normal_sorted[:32], ...].unsqueeze(1)
-            X_normal_high = dataset.test_set.data[idx_normal_sorted[-32:], ...].unsqueeze(1)
-
-        if dataset_name == 'cifar10':
-            X_all_low = torch.tensor(np.transpose(dataset.test_set.data[idx_all_sorted[:32], ...], (0,3,1,2)))
-            X_all_high = torch.tensor(np.transpose(dataset.test_set.data[idx_all_sorted[-32:], ...], (0,3,1,2)))
-            X_normal_low = torch.tensor(np.transpose(dataset.test_set.data[idx_normal_sorted[:32], ...], (0,3,1,2)))
-            X_normal_high = torch.tensor(np.transpose(dataset.test_set.data[idx_normal_sorted[-32:], ...], (0,3,1,2)))
-
-        plot_images_grid(X_all_low, export_img=xp_path + '/all_low', padding=2)
-        plot_images_grid(X_all_high, export_img=xp_path + '/all_high', padding=2)
-        plot_images_grid(X_normal_low, export_img=xp_path + '/normals_low', padding=2)
-        plot_images_grid(X_normal_high, export_img=xp_path + '/normals_high', padding=2)
 
 
 if __name__ == '__main__':

@@ -12,14 +12,13 @@ import numpy as np
 
 from .Attack2 import *
 
-
 class DeepSADTrainer(BaseTrainer):
 
     def __init__(self, c, eta: float, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 150,
                  lr_milestones: tuple = (), batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda',
-                 n_jobs_dataloader: int = 0,attack_type='fgsm',attack_target='clear'):
+                 n_jobs_dataloader: int = 0):
         super().__init__(optimizer_name, lr, n_epochs, lr_milestones, batch_size, weight_decay, device,
-                         n_jobs_dataloader,attack_type,attack_target)
+                         n_jobs_dataloader)
 
         # Deep SAD parameters
         self.c = torch.tensor(c, device=self.device) if c is not None else None
@@ -33,9 +32,11 @@ class DeepSADTrainer(BaseTrainer):
         self.test_auc = None
         self.test_time = None
         self.test_scores = None
-
-        self.attack_type=attack_type
-        self.attack_target=attack_target            
+        
+        self.test_auc_clear = None
+        self.test_auc_normal = None
+        self.test_auc_anomal = None
+        self.test_auc_both = None        
 
     def train(self, dataset: BaseADDataset, net: BaseNet):
         logger = logging.getLogger()
@@ -100,27 +101,11 @@ class DeepSADTrainer(BaseTrainer):
 
         return net
 
-    def test(self, dataset: BaseADDataset, net: BaseNet):
+    def test(self, dataset: BaseADDataset, net: BaseNet,attack_type='fgsm',epsilon=8/255,alpha=1e-2):
         logger = logging.getLogger()
-        
-        try:
-          std = torch.tensor(dataset.ds_std).view(3,1,1).cuda()
-          std=torch.mean(std).item()
-        except:
-          std = torch.tensor(dataset.ds_std).view(1,1,1).cuda()
-          std=std.item()
-
-        epsilon = (8 / 255.) / std
-        
-        # print("\n\nthis is std:   ",std,"\n\n")
-        # print("\n\nthis is eps:   ",epsilon,"\n\n")
-        
-        # alpha = (2 / 255.) / std
-        alpha=0.01
 
         # Get test data loader
-        batch_sz=self.batch_size if self.attack_type=='clear' else 1
-        _, test_loader = dataset.loaders(batch_size=batch_sz, num_workers=self.n_jobs_dataloader)
+        _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
         # Set device for network
         net = net.to(self.device)
@@ -132,63 +117,57 @@ class DeepSADTrainer(BaseTrainer):
         start_time = time.time()
         idx_label_score = []
         net.eval()
-        # with torch.no_grad():
-        for data in test_loader:
-            inputs, labels, semi_targets, idx = data
-            
-            shouldBeAttacked=False
-            if self.attack_target=='normal':
-                if labels==0:
-                    shouldBeAttacked=True
-            elif self.attack_target=='anomal':
-                if labels==1:
-                    shouldBeAttacked=True
-            elif self.attack_target=='both':
-                shouldBeAttacked=True
-    
+        with torch.no_grad():
+            for data in test_loader:
+                inputs, labels, semi_targets, idx = data
 
-            inputs = inputs.to(self.device)
-            labels = labels.to(self.device)
-            semi_targets = semi_targets.to(self.device)
-            idx = idx.to(self.device)
-
-
-            if shouldBeAttacked==True:
-                if self.attack_type=='fgsm':
-                    adv_delta=fgsm(net,inputs,self.c,epsilon)
-                    # adv_delta=fgsm(net,inputs,self.c,8/255)
+                inputs = inputs.to(self.device)
+                labels = labels.to(self.device)
+                semi_targets = semi_targets.to(self.device)
+                idx = idx.to(self.device)
                 
+                loss,no_adv_scores=self.getScore(net,inputs,semi_targets)
                 
-                if self.attack_type=='pgd':
-                    # adv_delta=attack_pgd(model=net,X= inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=2,c= self.c)
-                    adv_delta=attack_pgd(model=net,X= inputs, epsilon=0.3,alpha=alpha,attack_iters= 10,restarts=1,c= self.c)
+                if attack_type=='fgsm':
+                    adv_delta=attack_pgd(net,inputs,epsilon=1.25*epsilon,attack_iters=1,restarts=1, norm="l_inf",objective=self.objective,R=self.R,c=self.c)
                 
-                inputs  = inputs+adv_delta if labels==0 else inputs-adv_delta
+                if attack_type=='pgd':
+                    adv_delta=attack_pgd(net, inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=1, norm="l_inf",objective=self.objective,R=self.R,c=self.c)
+                
+                inputs = inputs+adv_delta if labels==0 else inputs-adv_delta
 
+                _,adv_scores=self.getScore(net,inputs)
 
+                # Save triples of (idx, label, score) in a list
+                idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
+                                            labels.cpu().data.numpy().tolist(),
+                                            no_adv_scores.cpu().data.numpy().tolist()),
+                                            adv_scores.cpu().data.numpy().tolist())
 
-            outputs = net(inputs)
-            dist = torch.sum((outputs - self.c) ** 2, dim=1)
-            losses = torch.where(semi_targets == 0, dist, self.eta * ((dist + self.eps) ** semi_targets.float()))
-            loss = torch.mean(losses)
-            scores = dist
-
-            # Save triples of (idx, label, score) in a list
-            idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
-                                        labels.cpu().data.numpy().tolist(),
-                                        scores.cpu().data.numpy().tolist()))
-
-            epoch_loss += loss.item()
-            n_batches += 1
+                epoch_loss += loss.item()
+                n_batches += 1
 
         self.test_time = time.time() - start_time
         self.test_scores = idx_label_score
 
         # Compute AUC
-        _, labels, scores = zip(*idx_label_score)
-        labels = np.array(labels)
-        scores = np.array(scores)
-        self.test_auc = roc_auc_score(labels, scores)
+        _, labels, no_adv_scores,adv_scores = zip(*idx_label_score)
+        no_adv_scores = np.array(no_adv_scores)
+        adv_scores = np.array(adv_scores)
+        
+        
+        normal_imgs_idx=np.argwhere(labels==0).flatten().tolist()
+        anomal_imgs_idx=np.argwhere(labels==1).flatten().tolist() 
+
+
+        self.test_auc_clear=roc_auc_score(labels, no_adv_scores)
+        self.test_auc_normal=roc_auc_score(labels[normal_imgs_idx].tolist()+labels[anomal_imgs_idx].tolist(),adv_scores[normal_imgs_idx].tolist()+no_adv_scores[anomal_imgs_idx].tolist())
+        self.test_auc_anomal=roc_auc_score(labels[normal_imgs_idx].tolist()+labels[anomal_imgs_idx].tolist(),no_adv_scores[normal_imgs_idx].tolist()+adv_scores[anomal_imgs_idx].tolist())
+        self.test_auc_both=roc_auc_score(labels, adv_scores)          
+        
+        
+        
+        # self.test_auc = roc_auc_score(labels, scores)
 
         # Log results
         logger.info('Test Loss: {:.6f}'.format(epoch_loss / n_batches))
@@ -196,6 +175,17 @@ class DeepSADTrainer(BaseTrainer):
         logger.info('Test Time: {:.3f}s'.format(self.test_time))
         logger.info('Finished testing.')
 
+   
+    def getScore(self,net,inputs,semi_targets):
+        outputs = net(inputs)
+        dist = torch.sum((outputs - self.c) ** 2, dim=1)
+        losses = torch.where(semi_targets == 0, dist, self.eta * ((dist + self.eps) ** semi_targets.float()))
+        loss = torch.mean(losses)
+        scores = dist
+        
+        return loss,scores
+
+   
     def init_center_c(self, train_loader: DataLoader, net: BaseNet, eps=0.1):
         """Initialize hypersphere center c as the mean from an initial forward pass on the data."""
         n_samples = 0
