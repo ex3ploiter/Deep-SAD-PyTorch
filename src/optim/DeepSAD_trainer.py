@@ -129,10 +129,10 @@ class DeepSADTrainer(BaseTrainer):
                 loss,no_adv_scores=self.getScore(net,inputs,semi_targets)
                 
                 if attack_type=='fgsm':
-                    adv_delta=attack_pgd(net,inputs,epsilon=1.25*epsilon,attack_iters=1,restarts=1, norm="l_inf",objective=self.objective,R=self.R,c=self.c)
+                    adv_delta=attack_pgd(net,inputs,epsilon=1.25*epsilon,attack_iters=1,restarts=1, norm="l_inf",c=self.c)
                 
                 if attack_type=='pgd':
-                    adv_delta=attack_pgd(net, inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=1, norm="l_inf",objective=self.objective,R=self.R,c=self.c)
+                    adv_delta=attack_pgd(net, inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=1, norm="l_inf",c=self.c)
                 
                 inputs = inputs+adv_delta if labels==0 else inputs-adv_delta
 
