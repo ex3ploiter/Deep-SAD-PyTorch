@@ -178,9 +178,9 @@ class DeepSADTrainer(BaseTrainer):
         # self.test_auc = roc_auc_score(labels, scores)
 
         # Log results
-        logger.info('Test Loss: {:.6f}'.format(epoch_loss / n_batches))
-        logger.info('Test AUC: {:.2f}%'.format(100. * self.test_auc))
-        logger.info('Test Time: {:.3f}s'.format(self.test_time))
+        # logger.info('Test Loss: {:.6f}'.format(epoch_loss / n_batches))
+        # logger.info('Test AUC: {:.2f}%'.format(100. * self.test_auc))
+        # logger.info('Test Time: {:.3f}s'.format(self.test_time))
         logger.info('Finished testing.')
 
    
