@@ -32,21 +32,23 @@ class FGSM(Attack):
         
         self.model=model
 
-    def forward(self, images,semi_targets,c,eta,eps):
+    def forward(self, images,labels,semi_targets,c,eta,eps):
         r"""
         Overridden.
         """
         images = images.clone().detach().to(self.device)
-        # labels = labels.clone().detach().to(self.device)
+        labels = labels.clone().detach().to(self.device)
 
         # if self.targeted:
             # target_labels = self.get_target_label(images, labels)
 
-        # loss = nn.CrossEntropyLoss()
+        loss = nn.BCEWithLogitsLoss()
 
         images.requires_grad = True
         
-        cost=getScore(self.model,images,semi_targets,c,eta,eps)
+        _,outputs=getScore(self.model,images,semi_targets,c,eta,eps)
+
+        cost = +loss(outputs, labels.float())
         
         # outputs = self.get_logits(images)
 

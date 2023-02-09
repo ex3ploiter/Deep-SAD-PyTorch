@@ -13,6 +13,7 @@ import numpy as np
 from .Attack2 import *
 
 from .fgsm import FGSM
+from .pgd import PGD
 
 class DeepSADTrainer(BaseTrainer):
 
@@ -125,6 +126,7 @@ class DeepSADTrainer(BaseTrainer):
         for data in test_loader:
             inputs, labels, semi_targets, idx = data
 
+            
             inputs = inputs.to(self.device)
             labels = labels.to(self.device)
             semi_targets = semi_targets.to(self.device)
@@ -135,11 +137,14 @@ class DeepSADTrainer(BaseTrainer):
             if attack_type=='fgsm':
                 # adv_delta=attack_pgd(net,inputs,epsilon=1.25*epsilon,attack_iters=1,restarts=1, norm="l_inf",c=self.c)
                 
-                attack = FGSM(net, eps=8/255)
-                adv_images = attack(inputs,semi_targets,self.c,self.eta,self.eps)
+                attack = FGSM(net, eps=25/255)
+                adv_images = attack(inputs,labels,semi_targets,self.c,self.eta,self.eps)
             
             if attack_type=='pgd':
-                adv_delta=attack_pgd(net, inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=1, norm="l_inf",c=self.c)
+                # adv_delta=attack_pgd(net, inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=1, norm="l_inf",c=self.c)
+                
+                attack = PGD(net, eps=8/255, alpha=1/255, steps=10, random_start=True)
+                adv_images = attack(inputs, labels,semi_targets,self.c,self.eta,self.eps)
             
             # inputs = inputs+adv_delta if labels==0 else inputs-adv_delta
 
