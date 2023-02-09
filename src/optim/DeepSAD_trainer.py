@@ -149,7 +149,7 @@ class DeepSADTrainer(BaseTrainer):
             idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
                                         labels.cpu().data.numpy().tolist(),
                                         no_adv_scores.cpu().data.numpy().tolist(),
-                                        adv_scores.cpu().data.numpy().tolist())
+                                        adv_scores.cpu().data.numpy().tolist()))
 
             epoch_loss += loss.item()
             n_batches += 1
