@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from ..attack import Attack
+from .attack_torch import Attack
 
 
 class PGD(Attack):
