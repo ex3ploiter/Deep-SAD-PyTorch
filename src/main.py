@@ -214,7 +214,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, et
     mine_result['ADV_AUC'] = []    
     
     # Test model
-    deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader)
+    deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type='fgsm',epsilon=cfg.settings['eps'],alpha=cfg.settings['alpha'])
     
     
     clear_auc=deepSAD.results['clear_auc']
@@ -234,7 +234,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, et
 
 
 
-    # deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type='fgsm',epsilon=cfg.settings['eps'],alpha=cfg.settings['alpha'])
+    # deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type='pgd',epsilon=cfg.settings['eps'],alpha=cfg.settings['alpha'])
     # clear_auc=deepSAD.results['clear_auc']
     # normal_auc=deepSAD.results['normal_auc']
     # anomal_auc=deepSAD.results['anomal_auc']
