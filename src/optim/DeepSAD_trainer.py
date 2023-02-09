@@ -161,6 +161,7 @@ class DeepSADTrainer(BaseTrainer):
         _, labels, no_adv_scores,adv_scores = zip(*idx_label_score)
         no_adv_scores = np.array(no_adv_scores)
         adv_scores = np.array(adv_scores)
+        labels = np.array(labels)
         
         
         normal_imgs_idx=np.argwhere(labels==0).flatten().tolist()
