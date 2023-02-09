@@ -12,6 +12,8 @@ import numpy as np
 
 from .Attack2 import *
 
+from .fgsm import FGSM
+
 class DeepSADTrainer(BaseTrainer):
 
     def __init__(self, c, eta: float, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 150,
@@ -105,6 +107,8 @@ class DeepSADTrainer(BaseTrainer):
         logger = logging.getLogger()
 
         # Get test data loader
+        
+        
         _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
         # Set device for network
@@ -129,14 +133,17 @@ class DeepSADTrainer(BaseTrainer):
             loss,no_adv_scores=self.getScore(net,inputs,semi_targets)
             
             if attack_type=='fgsm':
-                adv_delta=attack_pgd(net,inputs,epsilon=1.25*epsilon,attack_iters=1,restarts=1, norm="l_inf",c=self.c)
+                # adv_delta=attack_pgd(net,inputs,epsilon=1.25*epsilon,attack_iters=1,restarts=1, norm="l_inf",c=self.c)
+                
+                attack = FGSM(net, eps=8/255)
+                adv_images = attack(inputs,semi_targets,self.c,self.eta,self.eps)
             
             if attack_type=='pgd':
                 adv_delta=attack_pgd(net, inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=1, norm="l_inf",c=self.c)
             
-            inputs = inputs+adv_delta if labels==0 else inputs-adv_delta
+            # inputs = inputs+adv_delta if labels==0 else inputs-adv_delta
 
-            _,adv_scores=self.getScore(net,inputs)
+            _,adv_scores=self.getScore(net,adv_images)
 
             # Save triples of (idx, label, score) in a list
             idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
