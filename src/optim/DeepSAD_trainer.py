@@ -139,13 +139,13 @@ class DeepSADTrainer(BaseTrainer):
             if attack_type=='fgsm':
                 # adv_delta=attack_pgd(net,inputs,epsilon=1.25*epsilon,attack_iters=1,restarts=1, norm="l_inf",c=self.c)
                 
-                attack = FGSM(net, eps=25/255)
+                attack = FGSM(net, eps=epsilon)
                 adv_images = attack(inputs,labels,semi_targets,self.c,self.eta,self.eps)
             
             if attack_type=='pgd':
                 # adv_delta=attack_pgd(net, inputs, epsilon=epsilon,alpha=alpha,attack_iters= 10,restarts=1, norm="l_inf",c=self.c)
                 
-                attack = PGD(net, eps=8/255, alpha=1/255, steps=10, random_start=True)
+                attack = PGD(net, eps=epsilon, alpha=alpha, steps=10, random_start=True)
                 adv_images = attack(inputs, labels,semi_targets,self.c,self.eta,self.eps)
             
             # inputs = inputs+adv_delta if labels==0 else inputs-adv_delta
