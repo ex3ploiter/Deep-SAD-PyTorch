@@ -109,7 +109,7 @@ class DeepSADTrainer(BaseTrainer):
         # Get test data loader
         
         
-        _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
+        _, test_loader = dataset.loaders(batch_size=1, num_workers=self.n_jobs_dataloader)
 
         # Set device for network
         net = net.to(self.device)
