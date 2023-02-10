@@ -125,7 +125,7 @@ class DeepSADTrainer(BaseTrainer):
         net.eval()
         # with torch.no_grad():
         # for data in test_loader:
-         for (data) in enumerate(tqdm(test_loader, desc='Testing Adversarial')):
+        for (data) in enumerate(tqdm(test_loader, desc='Testing Adversarial')):
             
             inputs, labels, semi_targets, idx = data
 
