@@ -211,7 +211,8 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, et
     mine_result = {}
     mine_result['Attack_Type'] = []
     mine_result['Attack_Target'] = []
-    mine_result['ADV_AUC'] = []    
+    mine_result['ADV_AUC'] = []   
+    mine_result['setting'] = [] 
     
     # Test model
     deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type='fgsm',epsilon=cfg.settings['eps'],alpha=cfg.settings['alpha'])
