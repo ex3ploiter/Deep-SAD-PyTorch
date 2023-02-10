@@ -62,7 +62,7 @@ class MySVHN(SVHN):
     def __init__(self, *args, **kwargs):
         super(MySVHN, self).__init__(*args, **kwargs)
 
-        self.semi_targets = torch.zeros(len(self.targets), dtype=torch.int64)
+        self.semi_targets = torch.zeros(len(self.labels), dtype=torch.int64)
 
     def __getitem__(self, index):
         """Override the original method of the CIFAR10 class.
