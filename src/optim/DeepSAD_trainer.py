@@ -14,7 +14,7 @@ from .Attack2 import *
 
 from .fgsm import FGSM
 from .pgd import PGD
-import tqdm
+from tqdm import tqdm
 
 class DeepSADTrainer(BaseTrainer):
 
