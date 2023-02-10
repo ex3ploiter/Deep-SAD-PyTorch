@@ -244,6 +244,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, et
     mine_result['Attack_Type'].extend(['PGD','PGD','PGD','PGD'])
     mine_result['Attack_Target'].extend(['clean','normal','anomal','both'])
     mine_result['ADV_AUC'].extend([clear_auc,normal_auc,anomal_auc,both_auc])        
+    mine_result['setting'].extend([{'Dataset Name': dataset_name},{'Epsilon': cfg.settings['eps']},{'Alpha': cfg.settings['alpha']},{'Num Epoches': cfg.settings['n_epochs']}])        
     
     print(f'PGD Adv Adverserial Clean: {clear_auc}')
     print(f'PGD Adv Adverserial Normal: {normal_auc}')
