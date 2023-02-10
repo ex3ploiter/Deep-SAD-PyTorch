@@ -234,20 +234,20 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, et
 
 
 
-    # deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type='pgd',epsilon=cfg.settings['eps'],alpha=cfg.settings['alpha'])
-    # clear_auc=deepSAD.results['clear_auc']
-    # normal_auc=deepSAD.results['normal_auc']
-    # anomal_auc=deepSAD.results['anomal_auc']
-    # both_auc=deepSAD.results['both_auc']
+    deepSAD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader,attack_type='pgd',epsilon=cfg.settings['eps'],alpha=cfg.settings['alpha'])
+    clear_auc=deepSAD.results['clear_auc']
+    normal_auc=deepSAD.results['normal_auc']
+    anomal_auc=deepSAD.results['anomal_auc']
+    both_auc=deepSAD.results['both_auc']
 
-    # mine_result['Attack_Type'].extend(['fgsm','fgsm','fgsm','fgsm'])
-    # mine_result['Attack_Target'].extend(['clean','normal','anomal','both'])
-    # mine_result['ADV_AUC'].extend([clear_auc,normal_auc,anomal_auc,both_auc])        
+    mine_result['Attack_Type'].extend(['PGD','PGD','PGD','PGD'])
+    mine_result['Attack_Target'].extend(['clean','normal','anomal','both'])
+    mine_result['ADV_AUC'].extend([clear_auc,normal_auc,anomal_auc,both_auc])        
     
-    # print(f'FGSM Adv Adverserial Clean: {clear_auc}')
-    # print(f'FGSM Adv Adverserial Normal: {normal_auc}')
-    # print(f'FGSM Adv Adverserial Anomal: {anomal_auc}')
-    # print(f'FGSM Adv Adverserial Both: {both_auc}\n\n')
+    print(f'PGD Adv Adverserial Clean: {clear_auc}')
+    print(f'PGD Adv Adverserial Normal: {normal_auc}')
+    print(f'PGD Adv Adverserial Anomal: {anomal_auc}')
+    print(f'PGD Adv Adverserial Both: {both_auc}\n\n')
 
     df = pd.DataFrame(mine_result)    
     df.to_csv(os.path.join('./',f'Results_SAD_{dataset_name}_Class_{normal_class}.csv'), index=False)

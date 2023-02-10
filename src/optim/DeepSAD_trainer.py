@@ -14,6 +14,7 @@ from .Attack2 import *
 
 from .fgsm import FGSM
 from .pgd import PGD
+import tqdm
 
 class DeepSADTrainer(BaseTrainer):
 
@@ -123,7 +124,9 @@ class DeepSADTrainer(BaseTrainer):
         idx_label_score = []
         net.eval()
         # with torch.no_grad():
-        for data in test_loader:
+        # for data in test_loader:
+         for (data) in enumerate(tqdm(test_loader, desc='Testing Adversarial')):
+            
             inputs, labels, semi_targets, idx = data
 
             
