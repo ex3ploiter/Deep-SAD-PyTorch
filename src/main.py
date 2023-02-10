@@ -16,7 +16,7 @@ import os
 # Settings
 ################################################################################
 @click.command()
-@click.argument('dataset_name', type=click.Choice(['mnist', 'fmnist', 'cifar10', 'arrhythmia', 'cardio', 'satellite',
+@click.argument('dataset_name', type=click.Choice(['mnist', 'fmnist', 'cifar10','svhn','mvtec', 'arrhythmia', 'cardio', 'satellite',
                                                    'satimage-2', 'shuttle', 'thyroid']))
 @click.argument('net_name', type=click.Choice(['mnist_LeNet', 'fmnist_LeNet', 'cifar10_LeNet', 'arrhythmia_mlp',
                                                'cardio_mlp', 'satellite_mlp', 'satimage-2_mlp', 'shuttle_mlp',
