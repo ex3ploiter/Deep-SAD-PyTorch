@@ -60,7 +60,7 @@ class MVTec_Dataset(TorchvisionDataset):
         idx, _, semi_targets = create_semisupervised_setting(np.array(train_set.labels), self.normal_classes,
                                                              self.outlier_classes, self.known_outlier_classes,
                                                              ratio_known_normal, ratio_known_outlier, ratio_pollution)
-        train_set.semi_targets[idx] = torch.tensor(semi_targets)  # set respective semi-supervised labels
+        train_set.semi_targets[idx] = torch.tensor(semi_targets).long()  # set respective semi-supervised labels
 
         # Subset train_set to semi-supervised setup
         self.train_set = Subset(train_set, idx)
