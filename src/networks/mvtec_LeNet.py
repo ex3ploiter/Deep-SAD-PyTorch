@@ -54,8 +54,14 @@ class MVTec_LeNet_Decoder(BaseNet):
             nn.ReLU(True),
             nn.ConvTranspose2d(64, 3, kernel_size=11, stride=5),
             nn.Sigmoid())
+        
+        self.fc2 = nn.Linear(self.rep_dim, 50, bias=False)
 
     def forward(self, x):
+
+        x=self.fc2(x)
+        x=nn.ReLU(True)(x)
+        
         x = x.view(x.size(0), 50, 1, 1)
         x=self.decoder(x)
 
