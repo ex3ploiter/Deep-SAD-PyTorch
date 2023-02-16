@@ -95,6 +95,9 @@ class MyMVTec(Dataset):
         self.labels=[]
         for pth in self.image_files:
             img_class=pth.split('/')[3]
+            if 'kaggle' in pth:
+                img_class=pth.split('/')[4]
+            
             img_class_idx=mvtec_labels.index(img_class)
             self.labels.append(img_class_idx)
         
